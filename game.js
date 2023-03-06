@@ -24,6 +24,8 @@
     computer: 'Computer',
     numberOfBalls: 'Enter a number of balls',
     evenOrOdd: 'Enter even or odd',
+    even: 'even',
+    odd: 'odd',
 
   };
   const MESSAGE_RUS = {
@@ -43,8 +45,10 @@
     computer: 'Компьютер',
     numberOfBalls: 'Введите кол-во шариков которое хотите загадать',
     evenOrOdd: 'Введите четное или нечетное',
+    even: 'четное',
+    odd: 'нечетное',
   };
-    // ==========================
+  // ==========================
 
   class GameSettings {
     constructor(figures, messages) {
@@ -68,14 +72,42 @@
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1) + min);
   };
-    // Ход компьютера, получаем фигуру на основе полученного языка
+  // Ход компьютера, получаем фигуру на основе полученного языка
   const getBotFigure = (settings) => {
     const botRandomNumber = getRandom(1, 3);
     return settings.figures[botRandomNumber - 1];
   };
   // Ход игрока
-  const getPlayerMove = (settings) => prompt(settings.messages.move);
-  // ОСНОВА ==============================================
+  const getPlayerMove = (settings) => {
+    const playerFigure = prompt(settings.messages.move);
+    if (playerFigure === null || playerFigure === '') {
+      alert('Отмена');
+      return false;
+    } else if (settings.figures.indexOf(playerFigure) === -1) {
+      alert(settings.messages.invalid);
+      return false;
+    } else {
+      return playerFigure;
+    }
+  };
+
+  const compareRes = (playerFigure, botFigure, settings) => {
+    if (playerFigure === botFigure) {
+      alert(`Компьютер показал: ${botFigure} Игрок показал: ${playerFigure}`);
+      alert(settings.messages.tie);
+      return 'tie';
+    } else if ((botFigure === settings.figures[0] && playerFigure === settings.figures[2]) ||
+        (botFigure === settings.figures[1] && playerFigure === settings.figures[0]) ||
+        (botFigure === settings.figures[2] && playerFigure === settings.figures[1])) {
+      alert(`Компьютер показал: ${botFigure} Игрок показал: ${playerFigure}`);
+      alert(settings.messages.win);
+      return 'win';
+    } else {
+      alert(`Компьютер показал: ${botFigure} Игрок показал: ${playerFigure}`);
+      alert(settings.messages.lose);
+      return 'lose';
+    }
+  };
   class Result {
     constructor(player, computer) {
       this.player = player;
@@ -91,109 +123,62 @@
       return this.computer += this.computer + computer;
     }
   }
-  // Конструируем результаты
-  const result = new Result(0, 0);
+  // ОСНОВА ==============================================
   const game = (lang) => {
+    // Конструируем результаты
+    const result = new Result(0, 0);
     // Конструируем языковой объект
     const settings = createObject(lang);
 
-    // Проверка результатов ходов
-    const compareRes = (playerFigure, botFigure) => {
-      if (settings.figures.indexOf(playerFigure) === -1) {
-        alert(settings.messages.invalid);
-        return start(settings);
-      }
-      if (playerFigure === botFigure) {
-        alert(settings.messages.tie);
-        return 'tie';
-      } else if (
-        (botFigure === settings.figures[0] && playerFigure === settings.figures[2]) ||
-        (botFigure === settings.figures[1] && playerFigure === settings.figures[0]) ||
-        (botFigure === settings.figures[2] && playerFigure === settings.figures[1])
-      ) {
-        alert(settings.messages.win);
-        return 'win';
-      } else {
-        alert(settings.messages.lose);
-        return 'lose';
-      }
-    };
-    // Делаеем ходы
 
-    function start(settings) {
+    // Делаеем ходы
+    const start = (settings) => {
       // запускаем функцию хода компа
       const botFigure = getBotFigure(settings);
+
       // запускаем функцию хода игрока
       const playerFigure = getPlayerMove(settings);
-      if (playerFigure === null || playerFigure === '') {
-        const cancel = confirm(settings.messages.exit);
-        if (cancel) {
-          alert(
-              settings.messages.result
-                  .replace('$$$', result.player)
-                  .replace('$$$', result.computer),
-          );
-          return;
-        } else {
-          return game(lang);
-        }
+      if (playerFigure === false) {
+        return;
       }
+
+
       // Все походили, пора сравнить фигуры
-      const checkResult = compareRes(playerFigure, botFigure);
+      const checkResult = compareRes(playerFigure, botFigure, settings);
 
-      if (checkResult === 'win') {
-        result.setPlayerRes = 1;
-
-        console.log(result);
-      } else if (checkResult === 'lose') {
+      if (checkResult === 'lose') {
         result.setComputerResult = 1;
-      }
-      alert(`Компьютер показал: ${playerFigure} Игрок показал: ${botFigure}`);
-
-      // Если есть хоть одна победа то можно играть в марблы
-      if (result.player >= 1) {
-        console.log('Есть одна победа игрока можно двигаться дальше');
-        alert(settings.messages.firstWinMessage);
-        const nextGame = confirm(settings.messages.changeGameMessage);
-        if (nextGame) {
-          return result;
-        } else {
-          game(lang);
-        }
-      } else {
-        const again = confirm(settings.messages.again);
-        if (again) {
-          game(lang);
-        } else {
-          alert(
-              `Игрок выиграл ${result.player} раз,Компьютер выиграл ${result.computer} раз`);
-          return;
-        }
+      } else if (checkResult === 'win') {
+        result.setPlayerRes = 1;
+      } else if (checkResult === 'tie') {
+        alert('Ничья не сработает');
+        start(settings);
+      } else if (playerFigure === null || playerFigure === undefined) {
+        return;
       }
       return result;
-    }
+    };
     start(settings);
-    let gameWinner;
-    if (result.player > result.computer) {
-      gameWinner = 'player';
-      return [gameWinner, settings];
-    } else if (result.player === result.computer) {
-      alert('Равное кол-во побед не катит');
-      alert(settings.messages.cancel);
-    } else {
-      gameWinner = 'bot';
-      return [gameWinner, settings];
-    }
+    const getWinner = (result) => {
+      let gameWinner;
+      if (result.player === result.computer) {
+        return false;
+      } else if (result.player > result.computer) {
+        alert('Первым ходит игрок, потому что он умничка');
+        return gameWinner = 'player';
+      } else if (result.player < result.computer) {
+        alert('Первым ходит компьютер, потому что игрок безрукое чмо');
+        return gameWinner = 'bot';
+      }
+    };
+    const gameWinner = getWinner(result);
+    return [gameWinner, settings];
   };
   window.rps = game;
 })();
 
 (() => {
-  // Исходное кол-во "Яблок" (Как в школе у Пети и Маши было по 5 яблок)
-  let playerBalls = 5;
-  let botBalls = 5;
-
-  // Получаем случайное число в заданном диапозоне
+// Получаем случайное число в заданном диапозоне
   const getRandom = (min, max) => {
     min = Math.ceil(min);
     max = Math.floor(max);
@@ -201,7 +186,7 @@
   };
 
   // Фунция получения ответа от бездушной машины. Привет Atomic Heart.
-  const compAnswer = () => getRandom(1, 2);
+  const botAnswer = () => getRandom(1, 2);
 
   // Четное или нет число
   const evenOrOdd = (num) => {
@@ -212,90 +197,137 @@
     }
   };
 
-  // Основа==========================================================================================
-  // Функция получает результат баталии камень ножницы бумага циркулярная пила
+  // Класс конструктор шариков этих уже вонючих
+  class Balls {
+    constructor(playerBalls, botBalls) {
+      this.playerBalls = playerBalls;
+      this.botBalls = botBalls;
+    }
+    get getPlayerBalls() {
+      return this.playerBalls;
+    }
+    get getBotBalls() {
+      return this.botBalls;
+    }
+    set setPlayerBalls(bet) {
+      return this.playerBalls += bet;
+    }
+    set setBotBalls(bet) {
+      return this.botBalls += bet;
+    }
+    set setNewPlayerBalls(bet) {
+      return this.playerBalls = bet;
+    }
+    set setNewBotBalls(bet) {
+      return this.botBalls = bet;
+    }
+  }
 
+  // Ходы игрока
+  // 1) Ввод числа шариков
+  const playerNumber = (balls) => {
+    const playerBet = +prompt('Сколько шариков загадываете?');
+    return playerBet;
+  };
+  // 2)Ввод текста четное/нечетное
+  const playerText = () => {
+    const playerAnswer = prompt('Введите четное / нечетное');
+    if (playerAnswer === null) {
+      return alert('Отмена ввода четное / нечетное');
+    } else {
+      return playerAnswer;
+    }
+  };
+
+  // Собираем объект с шариками
+  const balls = new Balls(5, 5);
+  // Основная функция игры
   const marbleBattle = ([gameWinner, settings]) => {
-    // Функция новой игры
+    // Начало новой игры, заново играем в RPS
     const newGame = () => {
       const again = confirm(settings.messages.again);
       if (again) {
+        balls.setNewBotBalls = 5;
+        balls.setNewPlayerBalls = 5;
         marbleBattle(window.rps());
+        console.log(balls);
       } else {
         return;
       }
     };
-
-    // Определяем кто первый ходит, на основе кол-ва побед в прошлой игре
+    if (gameWinner === false) {
+      alert('Отмена марблы');
+      return;
+    } // Если Ход игрока
     if (gameWinner === 'player') {
-      alert('Ход игрока');
-      const playerBet = prompt(settings.messages.numberOfBalls);
-      if (playerBet > playerBalls) {
-        alert(`Число не должно превышать ${playerBalls}`);
-        return marbleBattle([gameWinner, settings]);
-      }
-      // определяем четное или нет число у игрока
-      const playerChoice = evenOrOdd(playerBet);
-      // определяем четное или нет у бота
-      const compChoice = evenOrOdd(compAnswer());
-
-
-      if (playerBet === null || playerBet === '') {
-        return alert(settings.messages.cancel);
-      } else if (isNaN(playerBet)) {
-        alert(settings.messages.invalid);
+      const playerBet = playerNumber(balls);
+      if (Number.isNaN(playerBet)) {
+        alert('Не число');
         return marbleBattle(['player', settings]);
-      } else if (playerChoice === compChoice) {
-        playerBalls -= +playerBet;
-        botBalls += +playerBet;
-        alert(`${settings.messages.computer} выбрал ${compChoice}`);
-        alert(`Результаты ${settings.messages.computer}: ${botBalls}
-        ${settings.messages.player} : ${playerBalls}`);
-      } else {
-        playerBalls += +playerBet;
-        botBalls -= +playerBet;
-        alert(`${settings.messages.computer} выбрал ${compChoice}`);
-        alert(`Результаты ${settings.messages.computer}: ${botBalls}
-        ${settings.messages.player} : ${playerBalls}`);
+      } else if (playerBet === 0) {
+        alert('Не может ставка быть ноль!!!');
+        return marbleBattle(['player', settings]);
+      } else if (playerBet > balls.getPlayerBalls) {
+        alert(`Нельзя поставить больше чем у тебя есть, а есть у тебя ${balls.getPlayerBalls}`);
+        return marbleBattle(['player', settings]);
       }
-      // если кто-то продул
-      if (botBalls <= 0) {
-        return alert('Игра оконечна , компьютер продул');
-      } else if (playerBalls <= 0) {
-        return alert('Игра окончена. Игрок проиграл все шарики');
+      const playerChoice = evenOrOdd(playerBet);
+      const compChoice = evenOrOdd(botAnswer());
+      // Условия
+      if (playerChoice === compChoice) {
+        balls.setPlayerBalls = playerBet;
+        balls.setBotBalls = -playerBet;
+        alert(`${settings.messages.computer} выбрал ${compChoice}`);
+        // alert(`Статистика Игрок = ${balls.getPlayerBalls} / Бот = ${balls.getBotBalls}`);
+        console.log(balls);
       } else {
-        return marbleBattle(['bot', settings]);
+        balls.setPlayerBalls = -playerBet;
+        balls.setBotBalls = playerBet;
+        alert(`${settings.messages.computer} выбрал ${compChoice}`);
+        // // alert(`Статистика Игрок = ${balls.getPlayerBalls} / Бот = ${balls.getBotBalls}`);
+        console.log(balls);
+      } // если кто-то продул
+      if (balls.getBotBalls <= 0) {
+        alert('Игра оконечна , компьютер продул');
+        newGame();
+      } else if (balls.getPlayerBalls <= 0) {
+        alert('Игра окончена. Игрок проиграл все шарики');
+        newGame();
+      } else {
+        marbleBattle(['bot', settings]);
       }
     } else {
       alert('Ход компа');
-      const compBet = getRandom(1, botBalls);
+      console.log('Теперь бот');
+      const compBet = getRandom(1, balls.getBotBalls);
       const compChoice = evenOrOdd(compBet);
-      const playerAnswer = prompt(settings.messages.evenOrOdd);
-      if (playerAnswer === null || playerAnswer === '') {
-        return alert(settings.messages.cancel);
-      } else if (playerAnswer === compChoice) {
-        playerBalls += compBet;
-        botBalls -= compBet;
+      const playerAnswer = playerText();
+      if (playerAnswer === compChoice) {
+        balls.setPlayerBalls = -compBet;
+        balls.setBotBalls = compBet;
         alert(`${settings.messages.computer} загадал ${compBet}`);
-        alert(`Результаты ${settings.messages.computer}: ${botBalls}
-        ${settings.messages.player} : ${playerBalls}`);
+        // alert(`Статистика Игрок = ${balls.getPlayerBalls} / Бот = ${balls.getBotBalls}`);
+        console.log(balls);
       } else {
-        playerBalls -= compBet;
-        botBalls += compBet;
+        balls.setPlayerBalls = -compBet;
+        balls.setBotBalls = compBet;
         alert(`${settings.messages.computer} загадал ${compBet}`);
-        alert(`Результаты ${settings.messages.computer}: ${botBalls}
-        ${settings.messages.player} : ${playerBalls}`);
+        // alert(`Статистика Игрок = ${balls.getPlayerBalls} / Бот = ${balls.getBotBalls}`);
+        console.log(balls);
       }
-      if (botBalls <= 0) {
-        alert('Игра оконечно , компьютер продул');
-        return newGame();
-      } else if (playerBalls <= 0) {
+      if (balls.getBotBalls <= 0) {
+        alert('Игра оконечна , компьютер продул');
+        newGame();
+      } else if (balls.getPlayerBalls <= 0) {
         alert('Игра окончена. Игрок проиграл все шарики');
-        return newGame();
+        newGame();
       } else {
-        return marbleBattle(['player', settings]);
+        marbleBattle(['player', settings]);
       }
     }
+
+    console.log(balls);
+    console.log(`Первым ходит ${gameWinner}`);
   };
   window.MARBLES = marbleBattle;
 })();
