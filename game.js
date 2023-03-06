@@ -303,8 +303,8 @@
       const compChoice = evenOrOdd(compBet);
       const playerAnswer = playerText();
       if (playerAnswer === compChoice) {
-        balls.setPlayerBalls = -compBet;
-        balls.setBotBalls = compBet;
+        balls.setPlayerBalls = compBet;
+        balls.setBotBalls = -compBet;
         alert(`${settings.messages.computer} загадал ${compBet}`);
         
         
