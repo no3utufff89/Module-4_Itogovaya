@@ -278,13 +278,13 @@
         balls.setPlayerBalls = playerBet;
         balls.setBotBalls = -playerBet;
         alert(`${settings.messages.computer} выбрал ${compChoice}`);
-        // alert(`Статистика Игрок = ${balls.getPlayerBalls} / Бот = ${balls.getBotBalls}`);
+        
         console.log(balls);
       } else {
         balls.setPlayerBalls = -playerBet;
         balls.setBotBalls = playerBet;
         alert(`${settings.messages.computer} выбрал ${compChoice}`);
-        // // alert(`Статистика Игрок = ${balls.getPlayerBalls} / Бот = ${balls.getBotBalls}`);
+        
         console.log(balls);
       } // если кто-то продул
       if (balls.getBotBalls <= 0) {
@@ -306,13 +306,13 @@
         balls.setPlayerBalls = -compBet;
         balls.setBotBalls = compBet;
         alert(`${settings.messages.computer} загадал ${compBet}`);
-        // alert(`Статистика Игрок = ${balls.getPlayerBalls} / Бот = ${balls.getBotBalls}`);
+        
         console.log(balls);
       } else {
         balls.setPlayerBalls = -compBet;
         balls.setBotBalls = compBet;
         alert(`${settings.messages.computer} загадал ${compBet}`);
-        // alert(`Статистика Игрок = ${balls.getPlayerBalls} / Бот = ${balls.getBotBalls}`);
+        
         console.log(balls);
       }
       if (balls.getBotBalls <= 0) {
